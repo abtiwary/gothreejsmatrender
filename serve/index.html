@@ -1,1 +1,81 @@
-<p>it works!</p>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Render a 3D Utah Teapot using ThreeJS</title>
+
+        <script src="/static/js/three.js"></script>
+        <script src="/static/js/OBJLoader.js"></script>
+        <script src="/static/js/MTLLoader.js"></script>
+
+        <style type="text/css">
+            body {
+                margin: 0px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <script type="text/javascript">
+            const scene = new THREE.Scene();
+
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const light = new THREE.DirectionalLight("#ffeedd", 0.9);
+            light.position.set(-30, 0, 150);
+            scene.add(light);
+
+            const camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                1, 1000
+            );
+            camera.position.z = 100;
+
+            // load the blender object
+            const objLoader = new THREE.OBJLoader();
+            objLoader.setPath("/static/blender/");
+            // load the material for the object
+            const mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath("/static/blender/");
+
+            let utah_teapot;
+            document.onkeydown = (e) => {
+                switch (e.keyCode) {
+                    case 37:
+                    utah_teapot.rotation.x += 0.1;
+                    break;
+                    case 38:
+                    utah_teapot.rotation.z -= 0.1;
+                    break;
+                    case 39:
+                    utah_teapot.rotation.x -= 0.1;
+                    break;
+                    case 40:
+                    utah_teapot.rotation.z += 0.1;
+                    break;
+                }
+            }
+
+            new Promise((resolve) => {
+                mtlLoader.load("utah-teapot.mtl", (materials) => {
+                    resolve(materials);
+                });
+            }).then((materials) => {
+                materials.preload();
+                objLoader.setMaterials(materials);
+                objLoader.load("utah-teapot.obj", (object) => {
+                    utah_teapot = object;
+                    scene.add(object);
+                });
+            });
+
+            function render() {
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+            render();
+        </script>
+    </body>
+</html>
